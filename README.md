@@ -5,10 +5,11 @@ This thing is super incomplete
 DONE:
 * name (mutable)
 * class (mutable)
-* attributes (immutable
+* attributes (mutable)
+* Save (w/ checksum fix and all)
 
 TODO:
-* make attributes mutable
+* ~~make attributes mutable~~
 * Items
 * Skills
 * probably more
