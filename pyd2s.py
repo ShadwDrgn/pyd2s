@@ -15,21 +15,28 @@ def reverse_bytes(bit_stream):
 
 # Python d2 save model
 class D2Character:
-    """docstring for D2Character"""
+    """params (Your character name)"""
     def __init__(self, char_name, savedir=None):
         self.CLASSES = ['Amazon', 'Sorceress', 'Necromancer', 'Paladin', 'Barbarian', 'Druid', 'Assassin']
         if savedir is None:
             self.savedir = os.environ['USERPROFILE'] + '\\Saved Games\\Diablo II\\'
         else:
             self.savedir = savedir
+        self.savename = char_name
         self.savefile = self.savedir + char_name + '.d2s'
-        self.savename = self.savefile.split('\\')[-1][:-4]
         self.data = bytearray(D2Character.load(self.savefile))
         self.header = self.data[0:765]
         self.adata = self.attribute_data()
         self.skills_offset, self.attributes = self.get_attributes()
         # truncate the attribute data at the last byte we care about for future writing
         self.adata = self.adata[:(self.skills_offset) * 8]
+        sdata_offset = len(self.header) + self.skills_offset
+        # Skills data is 32 bytes including a 2 byte header we don't care about
+        self.sdata = self.data[sdata_offset+2:sdata_offset+32]
+        # FIX THIS. Currently we're just grabbing EVERYTHING after skills, but this is actually items + corpse currently.
+        idata_offset = sdata_offset+32
+        self.idata = self.data[idata_offset:]
+        # TODO: parse shared plugy stash
 
     def attribute_data(self):
         # read starting AFTER known structured data (765 bytes).
@@ -114,14 +121,22 @@ class D2Character:
         self.data[767:767+self.skills_offset] = reverse_bytes(self.adata).tobytes()
 
     def save(self):
-        fn = self.savefile.split('\\')[-1]
-        if fn[:-4] != self.name:
-            print(f'*ERROR: Character name does not match filename*\nname: {self.name}\nfilename: {fn}\nNOT Saving')
+        if self.savename != self.name:
+            print(f'*ERROR: Character name does not match filename*\nname: {self.name}\nfilename: {self.savename}\nNOT Saving')
             return
         self.fix_checksum()
         with open(self.savefile, 'wb') as f:
             f.write(self.data)
         print('Saved!')
+
+    @property
+    def savename(self):
+        return self.savename
+
+    @savename.setter
+    def savename(self, val):
+        self.savename = val
+        self.savefile = self.savedir + char_name + '.d2s'
 
     @property
     def strength(self):
@@ -180,4 +195,3 @@ class D2Character:
     @level.setter
     def level(self, iLevel):
         self.data[43] = iLevel
-
