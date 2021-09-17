@@ -1,7 +1,8 @@
 # pyd2s
 
 This thing is super incomplete
-done so far:
+
+DONE:
 * name (mutable)
 * class (mutable)
 * attributes (immutable
